@@ -1,15 +1,63 @@
-<!doctype html> <html lang="en"> <head> <meta charset="UTF-8" /> <meta name="viewport" content="width=device-width, initial-scale=1.0" /> <title>Happy Birthday Calendar</title> <meta name="description" content="Interactive birthday photo calendar with captions." /> <link rel="stylesheet" href="styles.css" /> </head> <body> <main class="page"> <header class="hero"> <p class="eyebrow">Birthday Surprise</p> <h1 id="title">Happy Birthday, My Dear</h1> <p id="subtitle">Tap any day to see the memory caption.</p> </header>
+<!-- index.html -->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Birthday Memory Calendar</title>
+  <meta
+    name="description"
+    content="An interactive birthday calendar with blurred photo previews and captions."
+  />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="page">
+    <header class="hero">
+      <p class="eyebrow">Birthday Surprise</p>
+      <h1 id="title">Happy Birthday</h1>
+      <p id="subtitle">Tap an available day to open the memory.</p>
+    </header>
 
-  <section class="controls">
-  <button id="prevBtn" aria-label="Previous month">Previous</button>
-  <h2 id="monthLabel"></h2>
-  <button id="nextBtn" aria-label="Next month">Next</button>
-</section>
+    <section class="controls" aria-label="Calendar navigation">
+      <button id="prevBtn" type="button" aria-label="Previous month">Previous</button>
+      <h2 id="monthLabel"></h2>
+      <button id="nextBtn" type="button" aria-label="Next month">Next</button>
+    </section>
 
-<section class="weekdays" aria-hidden="true">
-  <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
-</section>
+    <section class="weekdays" aria-hidden="true">
+      <span>Mon</span>
+      <span>Tue</span>
+      <span>Wed</span>
+      <span>Thu</span>
+      <span>Fri</span>
+      <span>Sat</span>
+      <span>Sun</span>
+    </section>
 
-<section id="calendarGrid" class="calendar-grid" aria-live="polite"></section>
+    <section id="calendarGrid" class="calendar-grid" aria-live="polite"></section>
+  </main>
 
-  </main> <dialog id="captionDialog" class="caption-dialog"> <article class="caption-card"> <img id="dialogImage" alt="Selected memory photo" /> <h3 id="dialogDate"></h3> <p id="dialogCaption"></p> <button id="closeDialogBtn">Close</button> </article> </dialog> <script src="script.js"></script> </body> </html>
+  <div id="captionModal" class="caption-modal hidden" aria-hidden="true">
+    <div id="captionBackdrop" class="caption-backdrop"></div>
+
+    <section
+      class="caption-sheet"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="dialogDate"
+      aria-describedby="dialogCaption"
+    >
+      <button id="closeDialogBtn" class="close-btn" type="button" aria-label="Close">
+        ×
+      </button>
+
+      <img id="dialogImage" alt="Selected memory photo" />
+      <h3 id="dialogDate"></h3>
+      <p id="dialogCaption"></p>
+    </section>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
