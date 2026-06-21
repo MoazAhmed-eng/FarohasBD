@@ -1,16 +1,16 @@
 const CONFIG = {
-recipientName: "Faroha",
-subtitle: "A month of memories made for your birthday.",
-startYear: 2026,
-startMonth: 1,
-captionsFile: "captions.json",
-photoStartDate: "2026-02-01",
-photoEndDate: "2026-06-23"
+  recipientName: "Aisha",
+  subtitle: "A collection of special memories just for you.",
+  startYear: 2026,
+  startMonth: 1,
+  endYear: 2026,
+  endMonth: 5,
+  memoriesFile: "memories.json"
 };
 
 let currentYear = CONFIG.startYear;
 let currentMonth = CONFIG.startMonth;
-let captionsMap = {};
+let memoriesMap = {};
 
 const titleEl = document.getElementById("title");
 const subtitleEl = document.getElementById("subtitle");
@@ -29,204 +29,187 @@ titleEl.textContent = "Happy Birthday, " + CONFIG.recipientName;
 subtitleEl.textContent = CONFIG.subtitle;
 
 prevBtn.addEventListener("click", () => {
-if (!canGoPrev()) return;
-currentMonth -= 1;
-if (currentMonth < 0) {
-currentMonth = 11;
-currentYear -= 1;
-}
-renderCalendar();
+  if (!canGoPrev()) return;
+  currentMonth -= 1;
+  if (currentMonth < 0) {
+    currentMonth = 11;
+    currentYear -= 1;
+  }
+  renderCalendar();
 });
 
 nextBtn.addEventListener("click", () => {
-if (!canGoNext()) return;
-currentMonth += 1;
-if (currentMonth > 11) {
-currentMonth = 0;
-currentYear += 1;
-}
-renderCalendar();
+  if (!canGoNext()) return;
+  currentMonth += 1;
+  if (currentMonth > 11) {
+    currentMonth = 0;
+    currentYear += 1;
+  }
+  renderCalendar();
 });
 
 closeDialogBtn.addEventListener("click", () => {
-captionDialog.close();
+  captionDialog.close();
 });
 
 captionDialog.addEventListener("click", (event) => {
-const rect = captionDialog.getBoundingClientRect();
-const clickedInside =
-event.clientX >= rect.left &&
-event.clientX <= rect.right &&
-event.clientY >= rect.top &&
-event.clientY <= rect.bottom;
+  const rect = captionDialog.getBoundingClientRect();
+  const inside =
+    event.clientX >= rect.left &&
+    event.clientX <= rect.right &&
+    event.clientY >= rect.top &&
+    event.clientY <= rect.bottom;
 
-if (!clickedInside) {
-captionDialog.close();
-}
+  if (!inside) {
+    captionDialog.close();
+  }
 });
 
 function pad(n) {
-return String(n).padStart(2, "0");
+  return String(n).padStart(2, "0");
 }
 
 function formatDateKey(year, month, day) {
-return year + "-" + pad(month + 1) + "-" + pad(day);
+  return year + "-" + pad(month + 1) + "-" + pad(day);
 }
 
 function formatMonthLabel(year, month) {
-return new Date(year, month, 1).toLocaleString("en-US", {
-month: "long",
-year: "numeric"
-});
-}
-
-function toDateOnly(dateStr) {
-const parts = dateStr.split("-");
-return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
-}
-
-function isWithinPhotoRange(dateKey) {
-const d = toDateOnly(dateKey);
-const start = toDateOnly(CONFIG.photoStartDate);
-const end = toDateOnly(CONFIG.photoEndDate);
-return d >= start && d <= end;
+  return new Date(year, month, 1).toLocaleString("en-US", {
+    month: "long",
+    year: "numeric"
+  });
 }
 
 function monthIndex(year, month) {
-return year * 12 + month;
-}
-
-function startMonthIndex() {
-const s = toDateOnly(CONFIG.photoStartDate);
-return monthIndex(s.getFullYear(), s.getMonth());
-}
-
-function endMonthIndex() {
-const e = toDateOnly(CONFIG.photoEndDate);
-return monthIndex(e.getFullYear(), e.getMonth());
-}
-
-function currentMonthIndex() {
-return monthIndex(currentYear, currentMonth);
+  return year * 12 + month;
 }
 
 function canGoPrev() {
-return currentMonthIndex() > startMonthIndex();
+  return monthIndex(currentYear, currentMonth) > monthIndex(CONFIG.startYear, CONFIG.startMonth);
 }
 
 function canGoNext() {
-return currentMonthIndex() < endMonthIndex();
+  return monthIndex(currentYear, currentMonth) < monthIndex(CONFIG.endYear, CONFIG.endMonth);
 }
 
 function updateNavButtons() {
-prevBtn.disabled = !canGoPrev();
-nextBtn.disabled = !canGoNext();
+  prevBtn.disabled = !canGoPrev();
+  nextBtn.disabled = !canGoNext();
 }
 
-async function loadCaptions() {
-try {
-const res = await fetch(CONFIG.captionsFile, { cache: "no-store" });
-if (!res.ok) {
-captionsMap = {};
-return;
+async function loadMemories() {
+  try {
+    const response = await fetch(CONFIG.memoriesFile, { cache: "no-store" });
+    if (!response.ok) {
+      memoriesMap = {};
+      return;
+    }
+    memoriesMap = await response.json();
+  } catch {
+    memoriesMap = {};
+  }
 }
-captionsMap = await res.json();
-} catch (e) {
-captionsMap = {};
-}
+
+function hasMemory(dateKey) {
+  return Object.prototype.hasOwnProperty.call(memoriesMap, dateKey);
 }
 
 function openCaptionModal(dateKey) {
-const imagePath = "photos/" + dateKey + ".jpg";
-const caption = captionsMap[dateKey] || "A special memory from this day.";
+  const memory = memoriesMap[dateKey];
+  if (!memory) return;
 
-dialogImage.src = imagePath;
-dialogImage.alt = "Photo for " + dateKey;
-dialogDate.textContent = dateKey;
-dialogCaption.textContent = caption;
+  dialogImage.src = memory.image;
+  dialogImage.alt = "Photo for " + dateKey;
+  dialogDate.textContent = dateKey;
+  dialogCaption.textContent = memory.caption || "A special memory.";
 
-if (typeof captionDialog.showModal === "function") {
-captionDialog.showModal();
-}
+  if (typeof captionDialog.showModal === "function") {
+    captionDialog.showModal();
+  }
 }
 
 function createEmptyCard() {
-const empty = document.createElement("div");
-empty.className = "empty-card";
-return empty;
+  const empty = document.createElement("div");
+  empty.className = "empty-card";
+  return empty;
 }
 
 function createDayCard(year, month, day) {
-const dateKey = formatDateKey(year, month, day);
-const inRange = isWithinPhotoRange(dateKey);
+  const dateKey = formatDateKey(year, month, day);
+  const enabled = hasMemory(dateKey);
 
-const card = document.createElement("button");
-card.className = "day-card";
-card.type = "button";
-card.setAttribute("aria-label", "Open memory for " + dateKey);
+  const card = document.createElement("button");
+  card.className = "day-card";
+  card.type = "button";
 
-const badge = document.createElement("span");
-badge.className = "day-badge";
-badge.textContent = String(day);
-card.appendChild(badge);
+  const badge = document.createElement("span");
+  badge.className = "day-badge";
+  badge.textContent = String(day);
+  card.appendChild(badge);
 
-if (!inRange) {
-card.classList.add("no-photo");
-card.disabled = true;
-const txt = document.createElement("p");
-txt.textContent = "Outside photo range";
-card.appendChild(txt);
-return card;
-}
+  if (enabled) {
+    card.classList.add("has-memory");
+    card.setAttribute("aria-label", "Open memory for " + dateKey);
 
-const img = document.createElement("img");
-img.src = "photos/" + dateKey + ".jpg";
-img.alt = "Photo for " + dateKey;
-img.loading = "lazy";
+    const marker = document.createElement("span");
+    marker.className = "memory-dot";
+    marker.setAttribute("aria-hidden", "true");
+    card.appendChild(marker);
 
-img.onerror = () => {
-card.classList.add("no-photo");
-if (img.parentElement === card) {
-card.removeChild(img);
-}
-const noPhotoText = document.createElement("p");
-noPhotoText.textContent = "No photo yet";
-card.appendChild(noPhotoText);
-};
+    const img = document.createElement("img");
+    img.src = memoriesMap[dateKey].image;
+    img.alt = "Photo for " + dateKey;
+    img.loading = "lazy";
 
-card.appendChild(img);
-card.addEventListener("click", () => openCaptionModal(dateKey));
+    img.onerror = () => {
+      card.classList.remove("has-memory");
+      card.classList.add("disabled-day");
+      card.disabled = true;
+      if (img.parentElement === card) {
+        card.removeChild(img);
+      }
+      const text = document.createElement("p");
+      text.textContent = "Photo missing";
+      card.appendChild(text);
+    };
 
-return card;
+    card.appendChild(img);
+    card.addEventListener("click", () => openCaptionModal(dateKey));
+  } else {
+    card.classList.add("disabled-day");
+    card.disabled = true;
+    card.setAttribute("aria-label", "No memory for " + dateKey);
+
+    const text = document.createElement("p");
+    text.textContent = "No photo";
+    card.appendChild(text);
+  }
+
+  return card;
 }
 
 function renderCalendar() {
-monthLabelEl.textContent = formatMonthLabel(currentYear, currentMonth);
-gridEl.innerHTML = "";
+  monthLabelEl.textContent = formatMonthLabel(currentYear, currentMonth);
+  gridEl.innerHTML = "";
 
-const firstDay = new Date(currentYear, currentMonth, 1);
-const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-const mondayFirst = (firstDay.getDay() + 6) % 7;
+  const firstDay = new Date(currentYear, currentMonth, 1);
+  const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+  const mondayFirst = (firstDay.getDay() + 6) % 7;
 
-for (let i = 0; i < mondayFirst; i += 1) {
-gridEl.appendChild(createEmptyCard());
-}
+  for (let i = 0; i < mondayFirst; i += 1) {
+    gridEl.appendChild(createEmptyCard());
+  }
 
-for (let day = 1; day <= daysInMonth; day += 1) {
-gridEl.appendChild(createDayCard(currentYear, currentMonth, day));
-}
+  for (let day = 1; day <= daysInMonth; day += 1) {
+    gridEl.appendChild(createDayCard(currentYear, currentMonth, day));
+  }
 
-updateNavButtons();
+  updateNavButtons();
 }
 
 async function init() {
-await loadCaptions();
-
-const start = toDateOnly(CONFIG.photoStartDate);
-currentYear = start.getFullYear();
-currentMonth = start.getMonth();
-
-renderCalendar();
+  await loadMemories();
+  renderCalendar();
 }
 
 init();
