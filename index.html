@@ -5,7 +5,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Birthday Memory Calendar</title>
-  <meta name="description" content="Interactive birthday calendar with blurred previews." />
+  <meta
+    name="description"
+    content="An interactive birthday calendar with blurred photo previews and captions."
+  />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -26,13 +29,13 @@
     <header class="hero">
       <p class="eyebrow">Birthday Surprise</p>
       <h1 id="title">Happy Birthday</h1>
-      <p id="subtitle">Tap an available day to view the memory.</p>
+      <p id="subtitle">Tap an available day to open the memory.</p>
     </header>
 
     <section class="controls" aria-label="Calendar navigation">
-      <button id="prevBtn" type="button">Previous</button>
+      <button id="prevBtn" type="button" aria-label="Previous month">Previous</button>
       <h2 id="monthLabel"></h2>
-      <button id="nextBtn" type="button">Next</button>
+      <button id="nextBtn" type="button" aria-label="Next month">Next</button>
     </section>
 
     <section class="weekdays" aria-hidden="true">
@@ -48,16 +51,17 @@
     <section id="calendarGrid" class="calendar-grid" aria-live="polite"></section>
   </main>
 
-  <section id="viewerPage" class="viewer-page hidden">
-    <div class="viewer-shell">
-      <button id="backToCalendarBtn" class="secondary-btn" type="button">
-        Back To Calendar
-      </button>
-      <img id="viewerImage" class="viewer-image" alt="Selected memory photo" />
-      <h2 id="viewerDate" class="viewer-date"></h2>
-      <p id="viewerCaption" class="viewer-caption"></p>
-    </div>
-  </section>
+  <dialog id="captionDialog" class="caption-dialog" aria-labelledby="dialogDate">
+    <form method="dialog" class="caption-panel">
+      <button class="close-btn" aria-label="Close" value="close" type="submit">×</button>
+
+      <img id="dialogImage" class="dialog-image" alt="Selected memory photo" />
+      <div class="dialog-body">
+        <h3 id="dialogDate" class="dialog-date"></h3>
+        <p id="dialogCaption" class="dialog-caption"></p>
+      </div>
+    </form>
+  </dialog>
 
   <script src="script.js"></script>
 </body>
