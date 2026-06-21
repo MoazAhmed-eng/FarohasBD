@@ -1,5 +1,5 @@
 const CONFIG = {
-recipientName: "Aisha",
+recipientName: "Faroha",
 subtitle: "A month of memories made for your birthday.",
 startYear: 2026,
 startMonth: 1,
