@@ -156,28 +156,30 @@ function createDayCard(year, month, day) {
     marker.setAttribute("aria-hidden", "true");
     card.appendChild(marker);
 
+    const media = document.createElement("div");
+    media.className = "day-media";
+
     const img = document.createElement("img");
     img.src = memoriesMap[dateKey].image;
     img.alt = "Photo for " + dateKey;
     img.loading = "lazy";
-    img.classList.add("photo-blurred");
+    img.className = "day-image is-blurred";
 
     img.onerror = () => {
       card.classList.remove("has-memory");
       card.classList.add("disabled-day");
       card.disabled = true;
-      if (img.parentElement === card) {
-        card.removeChild(img);
-      }
+      media.remove();
+
       const text = document.createElement("p");
       text.textContent = "Photo missing";
       card.appendChild(text);
     };
 
-    card.appendChild(img);
+    media.appendChild(img);
+    card.appendChild(media);
 
     card.addEventListener("click", () => {
-      img.classList.remove("photo-blurred");
       openCaptionModal(dateKey);
     });
   } else {
