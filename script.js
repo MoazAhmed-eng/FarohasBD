@@ -112,6 +112,8 @@ function canGoNext() {
 function updateNavButtons() {
   prevBtn.disabled = !canGoPrev();
   nextBtn.disabled = !canGoNext();
+  prevBtn1.disabled = !canGoPrev();
+  nextBtn1.disabled = !canGoNext();
 }
 
 async function loadMemories() {
