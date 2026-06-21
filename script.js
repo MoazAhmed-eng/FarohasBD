@@ -1,5 +1,6 @@
+// script.js
 const CONFIG = {
-  recipientName: "Lolety",
+  recipientName: "Aisha",
   subtitle: "A collection of special memories just for you.",
   startYear: 2026,
   startMonth: 1,
@@ -19,7 +20,8 @@ const gridEl = document.getElementById("calendarGrid");
 const prevBtn = document.getElementById("prevBtn");
 const nextBtn = document.getElementById("nextBtn");
 
-const captionDialog = document.getElementById("captionDialog");
+const captionModal = document.getElementById("captionModal");
+const captionBackdrop = document.getElementById("captionBackdrop");
 const dialogImage = document.getElementById("dialogImage");
 const dialogDate = document.getElementById("dialogDate");
 const dialogCaption = document.getElementById("dialogCaption");
@@ -29,44 +31,44 @@ titleEl.textContent = "Happy Birthday, " + CONFIG.recipientName;
 subtitleEl.textContent = CONFIG.subtitle;
 
 prevBtn.addEventListener("click", () => {
-  if (!canGoPrev()) return;
+  if (!canGoPrev()) {
+    return;
+  }
+
   currentMonth -= 1;
   if (currentMonth < 0) {
     currentMonth = 11;
     currentYear -= 1;
   }
+
   renderCalendar();
 });
 
 nextBtn.addEventListener("click", () => {
-  if (!canGoNext()) return;
+  if (!canGoNext()) {
+    return;
+  }
+
   currentMonth += 1;
   if (currentMonth > 11) {
     currentMonth = 0;
     currentYear += 1;
   }
+
   renderCalendar();
 });
 
-closeDialogBtn.addEventListener("click", () => {
-  captionDialog.close();
-});
+closeDialogBtn.addEventListener("click", closeCaptionModal);
+captionBackdrop.addEventListener("click", closeCaptionModal);
 
-captionDialog.addEventListener("click", (event) => {
-  const rect = captionDialog.getBoundingClientRect();
-  const inside =
-    event.clientX >= rect.left &&
-    event.clientX <= rect.right &&
-    event.clientY >= rect.top &&
-    event.clientY <= rect.bottom;
-
-  if (!inside) {
-    captionDialog.close();
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && !captionModal.classList.contains("hidden")) {
+    closeCaptionModal();
   }
 });
 
-function pad(n) {
-  return String(n).padStart(2, "0");
+function pad(number) {
+  return String(number).padStart(2, "0");
 }
 
 function formatDateKey(year, month, day) {
@@ -104,6 +106,7 @@ async function loadMemories() {
       memoriesMap = {};
       return;
     }
+
     memoriesMap = await response.json();
   } catch {
     memoriesMap = {};
@@ -116,16 +119,24 @@ function hasMemory(dateKey) {
 
 function openCaptionModal(dateKey) {
   const memory = memoriesMap[dateKey];
-  if (!memory) return;
+  if (!memory) {
+    return;
+  }
 
   dialogImage.src = memory.image;
   dialogImage.alt = "Photo for " + dateKey;
   dialogDate.textContent = dateKey;
   dialogCaption.textContent = memory.caption || "A special memory.";
 
-  if (typeof captionDialog.showModal === "function") {
-    captionDialog.showModal();
-  }
+  captionModal.classList.remove("hidden");
+  captionModal.setAttribute("aria-hidden", "false");
+  document.body.classList.add("modal-open");
+}
+
+function closeCaptionModal() {
+  captionModal.classList.add("hidden");
+  captionModal.setAttribute("aria-hidden", "true");
+  document.body.classList.remove("modal-open");
 }
 
 function createEmptyCard() {
@@ -203,7 +214,7 @@ function renderCalendar() {
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
   const mondayFirst = (firstDay.getDay() + 6) % 7;
 
-  for (let i = 0; i < mondayFirst; i += 1) {
+  for (let index = 0; index < mondayFirst; index += 1) {
     gridEl.appendChild(createEmptyCard());
   }
 
