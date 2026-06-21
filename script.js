@@ -1,9 +1,11 @@
 const CONFIG = {
-recipientName: "Faroha",
+recipientName: "Aisha",
 subtitle: "A month of memories made for your birthday.",
 startYear: 2026,
-startMonth: 5,
-captionsFile: "captions.json"
+startMonth: 1,
+captionsFile: "captions.json",
+photoStartDate: "2026-02-01",
+photoEndDate: "2026-06-23"
 };
 
 let currentYear = CONFIG.startYear;
@@ -27,6 +29,7 @@ titleEl.textContent = "Happy Birthday, " + CONFIG.recipientName;
 subtitleEl.textContent = CONFIG.subtitle;
 
 prevBtn.addEventListener("click", () => {
+if (!canGoPrev()) return;
 currentMonth -= 1;
 if (currentMonth < 0) {
 currentMonth = 11;
@@ -36,6 +39,7 @@ renderCalendar();
 });
 
 nextBtn.addEventListener("click", () => {
+if (!canGoNext()) return;
 currentMonth += 1;
 if (currentMonth > 11) {
 currentMonth = 0;
@@ -76,6 +80,49 @@ year: "numeric"
 });
 }
 
+function toDateOnly(dateStr) {
+const parts = dateStr.split("-");
+return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+}
+
+function isWithinPhotoRange(dateKey) {
+const d = toDateOnly(dateKey);
+const start = toDateOnly(CONFIG.photoStartDate);
+const end = toDateOnly(CONFIG.photoEndDate);
+return d >= start && d <= end;
+}
+
+function monthIndex(year, month) {
+return year * 12 + month;
+}
+
+function startMonthIndex() {
+const s = toDateOnly(CONFIG.photoStartDate);
+return monthIndex(s.getFullYear(), s.getMonth());
+}
+
+function endMonthIndex() {
+const e = toDateOnly(CONFIG.photoEndDate);
+return monthIndex(e.getFullYear(), e.getMonth());
+}
+
+function currentMonthIndex() {
+return monthIndex(currentYear, currentMonth);
+}
+
+function canGoPrev() {
+return currentMonthIndex() > startMonthIndex();
+}
+
+function canGoNext() {
+return currentMonthIndex() < endMonthIndex();
+}
+
+function updateNavButtons() {
+prevBtn.disabled = !canGoPrev();
+nextBtn.disabled = !canGoNext();
+}
+
 async function loadCaptions() {
 try {
 const res = await fetch(CONFIG.captionsFile, { cache: "no-store" });
@@ -111,6 +158,8 @@ return empty;
 
 function createDayCard(year, month, day) {
 const dateKey = formatDateKey(year, month, day);
+const inRange = isWithinPhotoRange(dateKey);
+
 const card = document.createElement("button");
 card.className = "day-card";
 card.type = "button";
@@ -120,6 +169,15 @@ const badge = document.createElement("span");
 badge.className = "day-badge";
 badge.textContent = String(day);
 card.appendChild(badge);
+
+if (!inRange) {
+card.classList.add("no-photo");
+card.disabled = true;
+const txt = document.createElement("p");
+txt.textContent = "Outside photo range";
+card.appendChild(txt);
+return card;
+}
 
 const img = document.createElement("img");
 img.src = "photos/" + dateKey + ".jpg";
@@ -148,7 +206,6 @@ gridEl.innerHTML = "";
 
 const firstDay = new Date(currentYear, currentMonth, 1);
 const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-
 const mondayFirst = (firstDay.getDay() + 6) % 7;
 
 for (let i = 0; i < mondayFirst; i += 1) {
@@ -158,10 +215,17 @@ gridEl.appendChild(createEmptyCard());
 for (let day = 1; day <= daysInMonth; day += 1) {
 gridEl.appendChild(createDayCard(currentYear, currentMonth, day));
 }
+
+updateNavButtons();
 }
 
 async function init() {
 await loadCaptions();
+
+const start = toDateOnly(CONFIG.photoStartDate);
+currentYear = start.getFullYear();
+currentMonth = start.getMonth();
+
 renderCalendar();
 }
 
