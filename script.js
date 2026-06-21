@@ -24,6 +24,9 @@ const gridEl = document.getElementById("calendarGrid");
 const prevBtn = document.getElementById("prevBtn");
 const nextBtn = document.getElementById("nextBtn");
 
+const prevBtn1 = document.getElementById("prevBtn1");
+const nextBtn1 = document.getElementById("nextBtn1");
+
 const captionDialog = document.getElementById("captionDialog");
 const dialogImage = document.getElementById("dialogImage");
 const dialogDate = document.getElementById("dialogDate");
@@ -46,6 +49,11 @@ prevBtn.addEventListener("click", () => {
   if (!canGoPrev()) {
     return;
   }
+  
+prevBtn1.addEventListener("click", () => {
+  if (!canGoPrev()) {
+    return;
+  }
 
   currentMonth -= 1;
   if (currentMonth < 0) {
@@ -57,6 +65,10 @@ prevBtn.addEventListener("click", () => {
 });
 
 nextBtn.addEventListener("click", () => {
+  if (!canGoNext()) {
+    return;
+  }
+nextBtn1.addEventListener("click", () => {
   if (!canGoNext()) {
     return;
   }
