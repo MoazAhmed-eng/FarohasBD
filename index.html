@@ -1,29 +1,38 @@
+<!-- index.html -->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Birthday Memory Calendar</title>
+  <meta name="description" content="Interactive birthday calendar with blurred previews." />
+  <link rel="stylesheet" href="styles.css" />
+</head>
 <body>
   <section id="coverPage" class="cover-page">
     <div class="cover-card">
       <p class="cover-eyebrow">A Birthday Surprise</p>
       <h1 class="cover-title">Happy Birthday, Aisha</h1>
       <p class="cover-text">
-        I made a small memory calendar for you. Tap the button below to open it.
+        I made a small memory calendar for you. Tap below to open it.
       </p>
-
-      <button id="openCalendarBtn" class="open-calendar-btn" type="button">
+      <button id="openCalendarBtn" class="primary-btn" type="button">
         Open Calendar
       </button>
     </div>
   </section>
 
-  <main id="calendarApp" class="page hidden">
+  <main id="calendarPage" class="page hidden">
     <header class="hero">
       <p class="eyebrow">Birthday Surprise</p>
       <h1 id="title">Happy Birthday</h1>
-      <p id="subtitle">Tap an available day to open the memory.</p>
+      <p id="subtitle">Tap an available day to view the memory.</p>
     </header>
 
     <section class="controls" aria-label="Calendar navigation">
-      <button id="prevBtn" type="button" aria-label="Previous month">Previous</button>
+      <button id="prevBtn" type="button">Previous</button>
       <h2 id="monthLabel"></h2>
-      <button id="nextBtn" type="button" aria-label="Next month">Next</button>
+      <button id="nextBtn" type="button">Next</button>
     </section>
 
     <section class="weekdays" aria-hidden="true">
@@ -39,29 +48,17 @@
     <section id="calendarGrid" class="calendar-grid" aria-live="polite"></section>
   </main>
 
-  <div id="captionModal" class="caption-modal hidden" aria-hidden="true">
-    <div id="captionBackdrop" class="caption-backdrop"></div>
-
-    <section
-      class="caption-sheet"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="dialogDate"
-      aria-describedby="dialogCaption"
-    >
-      <button id="closeDialogBtn" class="close-btn" type="button" aria-label="Close">
-        ×
+  <section id="viewerPage" class="viewer-page hidden">
+    <div class="viewer-shell">
+      <button id="backToCalendarBtn" class="secondary-btn" type="button">
+        Back To Calendar
       </button>
-
-      <img id="dialogImage" alt="Selected memory photo" />
-      <h3 id="dialogDate"></h3>
-      <p id="dialogCaption"></p>
-    </section>
-  </div>
-
-  <audio id="birthdayMusic" preload="auto" loop>
-    <source src="music/birthday.mp3" type="audio/mpeg" />
-  </audio>
+      <img id="viewerImage" class="viewer-image" alt="Selected memory photo" />
+      <h2 id="viewerDate" class="viewer-date"></h2>
+      <p id="viewerCaption" class="viewer-caption"></p>
+    </div>
+  </section>
 
   <script src="script.js"></script>
 </body>
+</html>
