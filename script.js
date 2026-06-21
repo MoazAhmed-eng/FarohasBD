@@ -49,7 +49,16 @@ prevBtn.addEventListener("click", () => {
   if (!canGoPrev()) {
     return;
   }
-  
+
+  currentMonth -= 1;
+  if (currentMonth < 0) {
+    currentMonth = 11;
+    currentYear -= 1;
+  }
+
+  renderCalendar();
+});
+
 prevBtn1.addEventListener("click", () => {
   if (!canGoPrev()) {
     return;
@@ -68,6 +77,16 @@ nextBtn.addEventListener("click", () => {
   if (!canGoNext()) {
     return;
   }
+
+  currentMonth += 1;
+  if (currentMonth > 11) {
+    currentMonth = 0;
+    currentYear += 1;
+  }
+
+  renderCalendar();
+});
+
 nextBtn1.addEventListener("click", () => {
   if (!canGoNext()) {
     return;
