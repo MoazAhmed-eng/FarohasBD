@@ -160,6 +160,7 @@ function createDayCard(year, month, day) {
     img.src = memoriesMap[dateKey].image;
     img.alt = "Photo for " + dateKey;
     img.loading = "lazy";
+    img.classList.add("photo-blurred");
 
     img.onerror = () => {
       card.classList.remove("has-memory");
@@ -174,7 +175,11 @@ function createDayCard(year, month, day) {
     };
 
     card.appendChild(img);
-    card.addEventListener("click", () => openCaptionModal(dateKey));
+
+    card.addEventListener("click", () => {
+      img.classList.remove("photo-blurred");
+      openCaptionModal(dateKey);
+    });
   } else {
     card.classList.add("disabled-day");
     card.disabled = true;
