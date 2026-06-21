@@ -1,43 +1,15 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Happy Birthday Calendar</title>
-  <meta name="description" content="A birthday photo calendar made with love." />
+<!doctype html> <html lang="en"> <head> <meta charset="UTF-8" /> <meta name="viewport" content="width=device-width, initial-scale=1.0" /> <title>Happy Birthday Calendar</title> <meta name="description" content="Interactive birthday photo calendar with captions." /> <link rel="stylesheet" href="styles.css" /> </head> <body> <main class="page"> <header class="hero"> <p class="eyebrow">Birthday Surprise</p> <h1 id="title">Happy Birthday, My Dear</h1> <p id="subtitle">Tap any day to see the memory caption.</p> </header>
 
-  <!-- Nice preview when sending the link -->
-  <meta property="og:title" content="Happy Birthday!" />
-  <meta property="og:description" content="A calendar full of memories, one photo for each day." />
-  <meta property="og:type" content="website" />
+  <section class="controls">
+  <button id="prevBtn" aria-label="Previous month">Previous</button>
+  <h2 id="monthLabel"></h2>
+  <button id="nextBtn" aria-label="Next month">Next</button>
+</section>
 
-  <link rel="stylesheet" href="styles.css" />
-</head>
-<body>
-  <main class="page">
-    <header class="hero">
-      <p class="eyebrow">Birthday Wish</p>
-      <h1 id="title">Happy Birthday, Dear Friend</h1>
-      <p id="subtitle">A month of memories, one photo for each day.</p>
-    </header>
+<section class="weekdays" aria-hidden="true">
+  <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+</section>
 
-    <section class="controls">
-      <button id="prevBtn" aria-label="Previous month">Previous</button>
-      <h2 id="monthLabel"></h2>
-      <button id="nextBtn" aria-label="Next month">Next</button>
-    </section>
+<section id="calendarGrid" class="calendar-grid" aria-live="polite"></section>
 
-    <section class="weekdays" aria-hidden="true">
-      <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
-    </section>
-
-    <section id="calendarGrid" class="calendar-grid" aria-live="polite"></section>
-
-    <footer class="footer-note">
-      <p>Tip: Share this page link as your birthday gift message.</p>
-    </footer>
-  </main>
-
-  <script src="script.js"></script>
-</body>
-</html>
+  </main> <dialog id="captionDialog" class="caption-dialog"> <article class="caption-card"> <img id="dialogImage" alt="Selected memory photo" /> <h3 id="dialogDate"></h3> <p id="dialogCaption"></p> <button id="closeDialogBtn">Close</button> </article> </dialog> <script src="script.js"></script> </body> </html>
