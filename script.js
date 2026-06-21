@@ -15,10 +15,7 @@ let memoriesMap = {};
 
 const coverPage = document.getElementById("coverPage");
 const calendarPage = document.getElementById("calendarPage");
-const viewerPage = document.getElementById("viewerPage");
-
 const openCalendarBtn = document.getElementById("openCalendarBtn");
-const backToCalendarBtn = document.getElementById("backToCalendarBtn");
 
 const titleEl = document.getElementById("title");
 const subtitleEl = document.getElementById("subtitle");
@@ -27,21 +24,16 @@ const gridEl = document.getElementById("calendarGrid");
 const prevBtn = document.getElementById("prevBtn");
 const nextBtn = document.getElementById("nextBtn");
 
-const viewerImage = document.getElementById("viewerImage");
-const viewerDate = document.getElementById("viewerDate");
-const viewerCaption = document.getElementById("viewerCaption");
+const captionDialog = document.getElementById("captionDialog");
+const dialogImage = document.getElementById("dialogImage");
+const dialogDate = document.getElementById("dialogDate");
+const dialogCaption = document.getElementById("dialogCaption");
 
 titleEl.textContent = "Happy Birthday, " + CONFIG.recipientName;
 subtitleEl.textContent = CONFIG.subtitle;
 
 openCalendarBtn.addEventListener("click", () => {
   coverPage.classList.add("hidden");
-  viewerPage.classList.add("hidden");
-  calendarPage.classList.remove("hidden");
-});
-
-backToCalendarBtn.addEventListener("click", () => {
-  viewerPage.classList.add("hidden");
   calendarPage.classList.remove("hidden");
 });
 
@@ -123,21 +115,57 @@ function hasMemory(dateKey) {
   return Object.prototype.hasOwnProperty.call(memoriesMap, dateKey);
 }
 
-function openViewer(dateKey) {
+function openCaptionDialog(dateKey) {
   const memory = memoriesMap[dateKey];
   if (!memory) {
     return;
   }
 
-  viewerImage.src = memory.image;
-  viewerImage.alt = "Photo for " + dateKey;
-  viewerDate.textContent = dateKey;
-  viewerCaption.textContent = memory.caption || "A special memory.";
+  dialogImage.src = memory.image;
+  dialogImage.alt = "Photo for " + dateKey;
+  dialogDate.textContent = dateKey;
+  dialogCaption.textContent = memory.caption || "A special memory.";
 
-  calendarPage.classList.add("hidden");
-  viewerPage.classList.remove("hidden");
-  window.scrollTo({ top: 0, behavior: "auto" });
+  if (typeof captionDialog.showModal === "function") {
+    if (!captionDialog.open) {
+      captionDialog.showModal();
+    }
+  } else {
+    captionDialog.setAttribute("open", "open");
+  }
 }
+
+function closeCaptionDialog() {
+  if (captionDialog.open && typeof captionDialog.close === "function") {
+    captionDialog.close();
+  } else {
+    captionDialog.removeAttribute("open");
+  }
+}
+
+captionDialog.addEventListener("click", (event) => {
+  const rect = captionDialog.getBoundingClientRect();
+  const inside =
+    event.clientX >= rect.left &&
+    event.clientX <= rect.right &&
+    event.clientY >= rect.top &&
+    event.clientY <= rect.bottom;
+
+  if (!inside) {
+    closeCaptionDialog();
+  }
+});
+
+captionDialog.addEventListener("cancel", (event) => {
+  event.preventDefault();
+  closeCaptionDialog();
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    closeCaptionDialog();
+  }
+});
 
 function createEmptyCard() {
   const empty = document.createElement("div");
@@ -191,7 +219,7 @@ function createDayCard(year, month, day) {
     card.appendChild(media);
 
     card.addEventListener("click", () => {
-      openViewer(dateKey);
+      openCaptionDialog(dateKey);
     });
   } else {
     card.classList.add("disabled-day");
