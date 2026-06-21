@@ -154,6 +154,7 @@ h1 {
 .empty-card,
 .day-card {
   min-height: 150px;
+  padding: 6px;
   border-radius: var(--radius);
   box-shadow: var(--shadow);
 }
@@ -184,8 +185,10 @@ h1 {
 .day-media {
   position: absolute;
   inset: 0;
-  overflow: hidden;
-  border-radius: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f3eee8;
 }
 
 .day-image {
