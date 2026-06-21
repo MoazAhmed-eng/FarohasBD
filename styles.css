@@ -106,10 +106,23 @@ gap: 10px;
 
 .empty-card,
 .day-card {
-min-height: 150px;
-border-radius: var(--radius);
-background: var(--card);
-box-shadow: var(--shadow);
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.day-card img {
+  width: 100%;
+  height: 100%;
+  min-height: 150px;
+  display: block;
+  object-fit: cover;
+  transition: filter 220ms ease, transform 220ms ease;
+}
+
+.day-card img.photo-blurred {
+  filter: blur(12px) saturate(0.85);
+  transform: scale(1.08);
 }
 
 .day-card.has-memory {
