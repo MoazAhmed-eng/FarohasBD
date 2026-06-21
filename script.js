@@ -1,7 +1,7 @@
 const CONFIG = {
-  recipientName: "Aisha",
+  recipientName: "Faroha",
   message: "Wishing you joy, laughter, and beautiful memories.",
-  birthdayDay: 21,
+  birthdayDay: 23,
   startYear: 2026,
   startMonth: 5 // 0=Jan, 5=Jun
 };
