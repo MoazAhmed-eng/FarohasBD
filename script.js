@@ -32,7 +32,12 @@ const dialogCaption = document.getElementById("dialogCaption");
 titleEl.textContent = "Happy Birthday, " + CONFIG.recipientName;
 subtitleEl.textContent = CONFIG.subtitle;
 
+const bgMusic = new Audio('./music.mp3');
+bgMusic.loop = true;
+bgMusic.volume = 0.2;
+
 openCalendarBtn.addEventListener("click", () => {
+  bgMusic.play();
   coverPage.classList.add("hidden");
   calendarPage.classList.remove("hidden");
 });
