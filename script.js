@@ -50,10 +50,18 @@ const bgMusic = new Audio('./music.mp3');
 bgMusic.loop = true;
 bgMusic.volume = 0.2;
 
+function normalizePasswordInput(value) {
+  return String(value || "")
+    .normalize("NFKC")
+    .replace(/[\u200B-\u200D\uFEFF]/g, "")
+    .replace(/[‐‑‒–—−]/g, "-")
+    .trim();
+}
+
 unlockForm.addEventListener("submit", async (event) => {
   event.preventDefault();
 
-  const password = (passwordInput.value || "").trim();
+  const password = normalizePasswordInput(passwordInput.value);
   if (!password) {
     accessMessage.textContent = "Enter password first.";
     return;
