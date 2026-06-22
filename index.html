@@ -19,9 +19,21 @@
       <p class="cover-text">
         I made a small memory calendar for you. Recapping all the days that you literally filled my heart with nothing but happiness.
       </p>
-      <button id="openCalendarBtn" class="primary-btn" type="button">
-        Open Calendar
-      </button>
+      <form id="unlockForm" class="unlock-form" autocomplete="off">
+        <label for="passwordInput">Password</label>
+        <input
+          id="passwordInput"
+          name="password"
+          type="password"
+          placeholder="Enter password"
+          required
+          autocomplete="current-password"
+        />
+        <p id="accessMessage" class="access-message" aria-live="polite"></p>
+        <button id="openCalendarBtn" class="primary-btn" type="submit">
+          Unlock Calendar
+        </button>
+      </form>
     </div>
   </section>
 
@@ -33,7 +45,7 @@
     </header>
     <section class="controls" aria-label="Calendar navigation test">
       <button id="prevBtn1" type="button" aria-label="Previous month">Previous</button>
-      <h2 id="monthLabel"></h2>
+      <h2 id="monthLabelTop"></h2>
       <button id="nextBtn1" type="button" aria-label="Next month">Next</button>
     </section>
     <section class="weekdays" aria-hidden="true">
@@ -49,7 +61,7 @@
     <section id="calendarGrid" class="calendar-grid" aria-live="polite"></section>
     <section class="controls" aria-label="Calendar navigation">
       <button id="prevBtn" type="button" aria-label="Previous month">Previous</button>
-      <h2 id="monthLabel"></h2>
+      <h2 id="monthLabelBottom"></h2>
       <button id="nextBtn" type="button" aria-label="Next month">Next</button>
     </section>
   </main>
