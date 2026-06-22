@@ -6,7 +6,9 @@ const CONFIG = {
   startMonth: 1,
   endYear: 2026,
   endMonth: 5,
-  memoriesFile: "memories.json"
+  memoriesFile: "memories.json",
+  accessSalt: "GqzFigt15rFXhs0r8aBGKg==",
+  accessHash: "b05fff515e7eb594613e1ecfdcba03c2a9b6cde05cb923fefc4f61ed29627830"
 };
 
 let currentYear = CONFIG.startYear;
@@ -15,11 +17,17 @@ let memoriesMap = {};
 
 const coverPage = document.getElementById("coverPage");
 const calendarPage = document.getElementById("calendarPage");
+const unlockForm = document.getElementById("unlockForm");
+const passwordInput = document.getElementById("passwordInput");
+const accessMessage = document.getElementById("accessMessage");
 const openCalendarBtn = document.getElementById("openCalendarBtn");
 
 const titleEl = document.getElementById("title");
 const subtitleEl = document.getElementById("subtitle");
-const monthLabelEl = document.getElementById("monthLabel");
+const monthLabelEls = [
+  document.getElementById("monthLabelTop"),
+  document.getElementById("monthLabelBottom")
+];
 const gridEl = document.getElementById("calendarGrid");
 const prevBtn = document.getElementById("prevBtn");
 const nextBtn = document.getElementById("nextBtn");
@@ -32,6 +40,9 @@ const dialogImage = document.getElementById("dialogImage");
 const dialogDate = document.getElementById("dialogDate");
 const dialogCaption = document.getElementById("dialogCaption");
 
+const textEncoder = new TextEncoder();
+const textDecoder = new TextDecoder();
+
 titleEl.textContent = "Happy Birthday, " + CONFIG.recipientName;
 subtitleEl.textContent = CONFIG.subtitle;
 
@@ -39,10 +50,40 @@ const bgMusic = new Audio('./music.mp3');
 bgMusic.loop = true;
 bgMusic.volume = 0.2;
 
-openCalendarBtn.addEventListener("click", () => {
-  bgMusic.play();
-  coverPage.classList.add("hidden");
-  calendarPage.classList.remove("hidden");
+unlockForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  const password = (passwordInput.value || "").trim();
+  if (!password) {
+    accessMessage.textContent = "Enter password first.";
+    return;
+  }
+
+  accessMessage.textContent = "Checking password...";
+  openCalendarBtn.disabled = true;
+
+  try {
+    const validPassword = await verifyPassword(password);
+    if (!validPassword) {
+      accessMessage.textContent = "Incorrect password.";
+      return;
+    }
+
+    accessMessage.textContent = "Unlocking memories...";
+    await loadMemories(password);
+
+    coverPage.classList.add("hidden");
+    calendarPage.classList.remove("hidden");
+    renderCalendar();
+
+    bgMusic.play().catch(() => {
+      // Ignore autoplay failure if browser blocks audio.
+    });
+  } catch {
+    accessMessage.textContent = "Could not unlock memories.";
+  } finally {
+    openCalendarBtn.disabled = false;
+  }
 });
 
 prevBtn.addEventListener("click", () => {
@@ -135,7 +176,134 @@ function updateNavButtons() {
   nextBtn1.disabled = !canGoNext();
 }
 
-async function loadMemories() {
+function bytesToHex(bytes) {
+  return Array.from(bytes, (byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+function base64ToBytes(base64) {
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+
+  for (let index = 0; index < binary.length; index += 1) {
+    bytes[index] = binary.charCodeAt(index);
+  }
+
+  return bytes;
+}
+
+function concatBytes(first, second) {
+  const merged = new Uint8Array(first.length + second.length);
+  merged.set(first, 0);
+  merged.set(second, first.length);
+  return merged;
+}
+
+function equalBytes(left, right) {
+  if (left.length !== right.length) {
+    return false;
+  }
+
+  let result = 0;
+  for (let index = 0; index < left.length; index += 1) {
+    result |= left[index] ^ right[index];
+  }
+
+  return result === 0;
+}
+
+async function deriveKeyMaterial(password, saltBase64, iterations, hash, lengthBits) {
+  const baseKey = await crypto.subtle.importKey(
+    "raw",
+    textEncoder.encode(password),
+    "PBKDF2",
+    false,
+    ["deriveBits"]
+  );
+
+  const bits = await crypto.subtle.deriveBits(
+    {
+      name: "PBKDF2",
+      salt: base64ToBytes(saltBase64),
+      iterations,
+      hash
+    },
+    baseKey,
+    lengthBits
+  );
+
+  return new Uint8Array(bits);
+}
+
+async function verifyPassword(password) {
+  const digest = await crypto.subtle.digest(
+    "SHA-256",
+    textEncoder.encode(CONFIG.accessSalt + ":" + password)
+  );
+
+  return bytesToHex(new Uint8Array(digest)) === CONFIG.accessHash;
+}
+
+async function decryptMemoriesPayload(payload, password) {
+  if (!payload || typeof payload !== "object") {
+    return {};
+  }
+
+  if (!payload.kdf || !payload.cipher || !payload.cipher.data) {
+    return payload;
+  }
+
+  const kdfHash = payload.kdf.hash || "SHA-1";
+  const iterations = Number(payload.kdf.iterations || 250000);
+  const keyLength = Number(payload.kdf.keyLength || 64);
+
+  const keyMaterial = await deriveKeyMaterial(
+    password,
+    payload.kdf.salt,
+    iterations,
+    kdfHash,
+    keyLength * 8
+  );
+
+  const encryptionKeyBytes = keyMaterial.slice(0, 32);
+  const macKeyBytes = keyMaterial.slice(32, 64);
+  const iv = base64ToBytes(payload.cipher.iv);
+  const cipherBytes = base64ToBytes(payload.cipher.data);
+  const expectedMac = base64ToBytes(payload.cipher.mac);
+
+  const macKey = await crypto.subtle.importKey(
+    "raw",
+    macKeyBytes,
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+
+  const computedMacBuffer = await crypto.subtle.sign("HMAC", macKey, concatBytes(iv, cipherBytes));
+  const computedMac = new Uint8Array(computedMacBuffer);
+
+  if (!equalBytes(computedMac, expectedMac)) {
+    throw new Error("Integrity check failed");
+  }
+
+  const encryptionKey = await crypto.subtle.importKey(
+    "raw",
+    encryptionKeyBytes,
+    { name: "AES-CBC" },
+    false,
+    ["decrypt"]
+  );
+
+  const decryptedBuffer = await crypto.subtle.decrypt(
+    { name: "AES-CBC", iv },
+    encryptionKey,
+    cipherBytes
+  );
+
+  const decryptedText = textDecoder.decode(decryptedBuffer);
+  return JSON.parse(decryptedText);
+}
+
+async function loadMemories(password) {
   try {
     const response = await fetch(CONFIG.memoriesFile, { cache: "no-store" });
     if (!response.ok) {
@@ -143,9 +311,11 @@ async function loadMemories() {
       return;
     }
 
-    memoriesMap = await response.json();
+    const payload = await response.json();
+    memoriesMap = await decryptMemoriesPayload(payload, password);
   } catch {
     memoriesMap = {};
+    throw new Error("Failed to load memories");
   }
 }
 
@@ -273,7 +443,13 @@ function createDayCard(year, month, day) {
 }
 
 function renderCalendar() {
-  monthLabelEl.textContent = formatMonthLabel(currentYear, currentMonth);
+  const monthLabel = formatMonthLabel(currentYear, currentMonth);
+  monthLabelEls.forEach((element) => {
+    if (element) {
+      element.textContent = monthLabel;
+    }
+  });
+
   gridEl.innerHTML = "";
 
   const firstDay = new Date(currentYear, currentMonth, 1);
@@ -291,9 +467,8 @@ function renderCalendar() {
   updateNavButtons();
 }
 
-async function init() {
-  await loadMemories();
-  renderCalendar();
+function init() {
+  updateNavButtons();
 }
 
 init();
