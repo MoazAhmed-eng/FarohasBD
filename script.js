@@ -7,8 +7,8 @@ const CONFIG = {
   endYear: 2026,
   endMonth: 5,
   memoriesFile: "memories.json",
-  accessSalt: "vC6TB0JW/v1P4oY9ez+jLA==",
-  accessHash: "008378928c502ce902643306e86d7aabe8f3cd01e3267458ece589e135ef3448"
+  accessSalt: "pCAcVFNnxfEuWrK3RvyP5A==",
+  accessHash: "72da73f2917211831abc34d5e99c868cb21ae84292d414ff13385786bfdd6168"
 };
 
 let currentYear = CONFIG.startYear;
