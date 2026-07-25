@@ -5,7 +5,7 @@ const CONFIG = {
   startYear: 2026,
   startMonth: 1,
   endYear: 2026,
-  endMonth: 5,
+  endMonth: 6,
   memoriesFile: "memories.json",
   accessSalt: "pCAcVFNnxfEuWrK3RvyP5A==",
   accessHash: "72da73f2917211831abc34d5e99c868cb21ae84292d414ff13385786bfdd6168"
