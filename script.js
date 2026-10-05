@@ -284,13 +284,48 @@ function hasMemory(dateKey) {
   return Object.prototype.hasOwnProperty.call(memoriesMap, dateKey);
 }
 
+function resolveMemoryImagePath(imagePath) {
+  const cleaned = String(imagePath || "").replace(/^\.?\//, "");
+  const withoutPrefix = cleaned.replace(/^photos\//, "");
+
+  const candidates = [];
+  if (cleaned) {
+    candidates.push(cleaned);
+  }
+  if (withoutPrefix && !candidates.includes(`photos/${withoutPrefix}`)) {
+    candidates.push(`photos/${withoutPrefix}`);
+  }
+
+  return candidates;
+}
+
+function setImageElementSource(element, imagePath) {
+  const candidates = resolveMemoryImagePath(imagePath);
+  let index = 0;
+
+  const tryNextCandidate = () => {
+    if (index >= candidates.length) {
+      element.removeAttribute("src");
+      return;
+    }
+
+    element.src = candidates[index];
+    index += 1;
+  };
+
+  element.onerror = () => {
+    tryNextCandidate();
+  };
+  tryNextCandidate();
+}
+
 function openCaptionDialog(dateKey) {
   const memory = memoriesMap[dateKey];
   if (!memory) {
     return;
   }
 
-  dialogImage.src = memory.image;
+  setImageElementSource(dialogImage, memory.image);
   dialogImage.alt = "Photo for " + dateKey;
   dialogDate.textContent = dateKey;
   dialogCaption.textContent = memory.caption || "A special memory.";
@@ -368,21 +403,33 @@ function createDayCard(year, month, day) {
     media.className = "day-media";
 
     const img = document.createElement("img");
-    img.src = memoriesMap[dateKey].image;
+    const candidates = resolveMemoryImagePath(memoriesMap[dateKey].image);
+    let candidateIndex = 0;
+
+    const tryNextImage = () => {
+      if (candidateIndex >= candidates.length) {
+        card.classList.remove("has-memory");
+        card.classList.add("disabled-day");
+        card.disabled = true;
+        media.remove();
+
+        const text = document.createElement("p");
+        text.textContent = "Photo missing";
+        card.appendChild(text);
+        return;
+      }
+
+      img.src = candidates[candidateIndex];
+      candidateIndex += 1;
+    };
+
     img.alt = "Photo for " + dateKey;
     img.loading = "lazy";
     img.className = "day-image is-blurred";
-
     img.onerror = () => {
-      card.classList.remove("has-memory");
-      card.classList.add("disabled-day");
-      card.disabled = true;
-      media.remove();
-
-      const text = document.createElement("p");
-      text.textContent = "Photo missing";
-      card.appendChild(text);
+      tryNextImage();
     };
+    tryNextImage();
 
     media.appendChild(img);
     card.appendChild(media);
