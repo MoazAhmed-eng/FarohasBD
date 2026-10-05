@@ -13,6 +13,107 @@ let currentYear = CONFIG.startYear;
 let currentMonth = CONFIG.startMonth;
 let memoriesMap = {};
 
+function getUnlockPassword() {
+  const typedPassword = window.prompt("Enter the calendar password:", "");
+  return typedPassword ? typedPassword.trim() : "";
+}
+
+function base64ToBytes(value) {
+  const binary = atob(value);
+  const bytes = new Uint8Array(binary.length);
+
+  for (let index = 0; index < binary.length; index += 1) {
+    bytes[index] = binary.charCodeAt(index);
+  }
+
+  return bytes;
+}
+
+async function deriveMemoryKeys(password, saltBytes) {
+  const keyMaterial = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(password),
+    { name: "PBKDF2" },
+    false,
+    ["deriveBits"]
+  );
+
+  const derivedBits = await crypto.subtle.deriveBits(
+    {
+      name: "PBKDF2",
+      salt: saltBytes,
+      iterations: 250000,
+      hash: "SHA-1"
+    },
+    keyMaterial,
+    512
+  );
+
+  const derivedBytes = new Uint8Array(derivedBits);
+  return {
+    encKey: derivedBytes.slice(0, 32),
+    macKey: derivedBytes.slice(32, 64)
+  };
+}
+
+async function decryptEncryptedMemories(encryptedText, password) {
+  const payload = JSON.parse(encryptedText);
+
+  if (!payload || !payload.kdf || !payload.cipher) {
+    throw new Error("Invalid encrypted memory payload.");
+  }
+
+  const saltBytes = base64ToBytes(payload.kdf.salt);
+  const ivBytes = base64ToBytes(payload.cipher.iv);
+  const encryptedBytes = base64ToBytes(payload.cipher.data);
+  const expectedMacBytes = base64ToBytes(payload.cipher.mac);
+
+  const { encKey, macKey } = await deriveMemoryKeys(password, saltBytes);
+
+  const macKeyHandle = await crypto.subtle.importKey(
+    "raw",
+    macKey,
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+
+  const macData = new Uint8Array(ivBytes.length + encryptedBytes.length);
+  macData.set(ivBytes, 0);
+  macData.set(encryptedBytes, ivBytes.length);
+
+  const actualMacBytes = new Uint8Array(
+    await crypto.subtle.sign("HMAC", macKeyHandle, macData)
+  );
+
+  if (actualMacBytes.length !== expectedMacBytes.length) {
+    throw new Error("Incorrect calendar password.");
+  }
+
+  for (let index = 0; index < actualMacBytes.length; index += 1) {
+    if (actualMacBytes[index] !== expectedMacBytes[index]) {
+      throw new Error("Incorrect calendar password.");
+    }
+  }
+
+  const aesKey = await crypto.subtle.importKey(
+    "raw",
+    encKey,
+    { name: "AES-CBC" },
+    false,
+    ["decrypt"]
+  );
+
+  const decryptedBuffer = await crypto.subtle.decrypt(
+    { name: "AES-CBC", iv: ivBytes },
+    aesKey,
+    encryptedBytes
+  );
+
+  const jsonText = new TextDecoder().decode(new Uint8Array(decryptedBuffer));
+  return JSON.parse(jsonText);
+}
+
 const coverPage = document.getElementById("coverPage");
 const calendarPage = document.getElementById("calendarPage");
 const openCalendarBtn = document.getElementById("openCalendarBtn");
@@ -110,8 +211,28 @@ async function loadMemories() {
       return;
     }
 
-    memoriesMap = await response.json();
-  } catch {
+    const rawText = await response.text();
+    const trimmed = rawText.trim();
+
+    if (!trimmed) {
+      memoriesMap = {};
+      return;
+    }
+
+    if (trimmed.startsWith("{") && trimmed.includes('"kdf"')) {
+      const password = getUnlockPassword();
+      if (!password) {
+        memoriesMap = {};
+        return;
+      }
+
+      memoriesMap = await decryptEncryptedMemories(trimmed, password);
+      return;
+    }
+
+    memoriesMap = JSON.parse(trimmed);
+  } catch (error) {
+    console.error("Unable to load memories:", error);
     memoriesMap = {};
   }
 }
