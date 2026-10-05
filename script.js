@@ -13,9 +13,49 @@ let currentYear = CONFIG.startYear;
 let currentMonth = CONFIG.startMonth;
 let memoriesMap = {};
 
+const passwordDialog = document.getElementById("passwordDialog");
+const passwordInput = document.getElementById("passwordInput");
+const unlockBtn = document.getElementById("unlockBtn");
+const cancelUnlockBtn = document.getElementById("cancelUnlockBtn");
+
+function closePasswordDialog() {
+  if (passwordDialog.open && typeof passwordDialog.close === "function") {
+    passwordDialog.close();
+  } else {
+    passwordDialog.removeAttribute("open");
+  }
+}
+
 function getUnlockPassword() {
-  const typedPassword = window.prompt("Enter the calendar password:", "");
-  return typedPassword ? typedPassword.trim() : "";
+  return new Promise((resolve) => {
+    passwordInput.value = "";
+
+    const submitPassword = () => {
+      const value = passwordInput.value.trim();
+      closePasswordDialog();
+      resolve(value);
+    };
+
+    const cancelPassword = () => {
+      closePasswordDialog();
+      resolve("");
+    };
+
+    if (typeof passwordDialog.showModal === "function") {
+      passwordDialog.showModal();
+    } else {
+      passwordDialog.setAttribute("open", "open");
+    }
+
+    unlockBtn.onclick = submitPassword;
+    cancelUnlockBtn.onclick = cancelPassword;
+    passwordDialog.oncancel = (event) => {
+      event.preventDefault();
+      cancelPassword();
+    };
+
+    passwordInput.focus();
+  });
 }
 
 function base64ToBytes(value) {
@@ -220,7 +260,7 @@ async function loadMemories() {
     }
 
     if (trimmed.startsWith("{") && trimmed.includes('"kdf"')) {
-      const password = getUnlockPassword();
+      const password = await getUnlockPassword();
       if (!password) {
         memoriesMap = {};
         return;
@@ -233,6 +273,9 @@ async function loadMemories() {
     memoriesMap = JSON.parse(trimmed);
   } catch (error) {
     console.error("Unable to load memories:", error);
+    if (window.location.protocol === "file:") {
+      window.alert("This calendar must be opened through a local web server, not as a file URL, for the encrypted memories to load.");
+    }
     memoriesMap = {};
   }
 }
