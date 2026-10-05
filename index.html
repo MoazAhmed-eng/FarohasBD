@@ -19,21 +19,9 @@
       <p class="cover-text">
         I made a small memory calendar for you. Recapping all the days that you literally filled my heart with nothing but happiness.
       </p>
-      <form id="unlockForm" class="unlock-form" autocomplete="off">
-        <label for="passwordInput">Password</label>
-        <input
-          id="passwordInput"
-          name="password"
-          type="password"
-          placeholder="Enter password"
-          required
-          autocomplete="current-password"
-        />
-        <p id="accessMessage" class="access-message" aria-live="polite"></p>
-        <button id="openCalendarBtn" class="primary-btn" type="submit">
-          Unlock Calendar
-        </button>
-      </form>
+      <button id="openCalendarBtn" class="primary-btn" type="button">
+        Open Calendar
+      </button>
     </div>
   </section>
 
@@ -43,11 +31,13 @@
       <h1 id="title">Happy Birthday</h1>
       <p id="subtitle">Tap an available day to open the memory.</p>
     </header>
-    <section class="controls" aria-label="Calendar navigation test">
-      <button id="prevBtn1" type="button" aria-label="Previous month">Previous</button>
-      <h2 id="monthLabelTop"></h2>
-      <button id="nextBtn1" type="button" aria-label="Next month">Next</button>
+
+    <section class="controls" aria-label="Calendar navigation">
+      <button id="prevBtn" type="button" aria-label="Previous month">Previous</button>
+      <h2 id="monthLabel"></h2>
+      <button id="nextBtn" type="button" aria-label="Next month">Next</button>
     </section>
+
     <section class="weekdays" aria-hidden="true">
       <span>Mon</span>
       <span>Tue</span>
@@ -59,11 +49,6 @@
     </section>
 
     <section id="calendarGrid" class="calendar-grid" aria-live="polite"></section>
-    <section class="controls" aria-label="Calendar navigation">
-      <button id="prevBtn" type="button" aria-label="Previous month">Previous</button>
-      <h2 id="monthLabelBottom"></h2>
-      <button id="nextBtn" type="button" aria-label="Next month">Next</button>
-    </section>
   </main>
 
   <dialog id="captionDialog" class="caption-dialog" aria-labelledby="dialogDate">
@@ -74,6 +59,20 @@
       <div class="dialog-body">
         <h3 id="dialogDate" class="dialog-date"></h3>
         <p id="dialogCaption" class="dialog-caption"></p>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="passwordDialog" class="caption-dialog" aria-labelledby="passwordTitle">
+    <form method="dialog" class="caption-panel">
+      <button class="close-btn" aria-label="Close" value="cancel" type="submit">×</button>
+      <div class="dialog-body">
+        <h3 id="passwordTitle" class="dialog-date">Enter calendar password</h3>
+        <input id="passwordInput" type="password" autocomplete="off" placeholder="Password" />
+        <div class="dialog-actions">
+          <button id="cancelUnlockBtn" type="submit" value="cancel">Cancel</button>
+          <button id="unlockBtn" type="button">Unlock</button>
+        </div>
       </div>
     </form>
   </dialog>
